@@ -33,7 +33,7 @@ CREATE OR REPLACE FUNCTION favorite(c_id INT)
     			WHERE customer_id = c_id
 	    		GROUP BY customer_genre.times_rented
 		    	ORDER BY times_rented DESC
-			    LIMIT 1;
+			    LIMIT 3;
             RETURN fav_genre;
         END
         $$;
