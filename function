@@ -22,7 +22,7 @@ CREATE OR REPLACE FUNCTION rented_genre(c_id INT, genre VARCHAR(25))
 
 --a function to get the most frequent film genre for each customer
 CREATE OR REPLACE FUNCTION favorite(c_id INT)
-    RETURNS STRING
+    RETURNS TEXT
         LANGUAGE PLPGSQL
         AS
         $$ 
