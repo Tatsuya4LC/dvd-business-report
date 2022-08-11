@@ -1,25 +1,3 @@
---a function to add frequency to customer's rented film genre
-CREATE OR REPLACE FUNCTION rented_genre(c_id INT, genre VARCHAR(25))
-	RETURNS SMALLINT
-		LANGUAGE PLPGSQL
-		AS
-		$$
-		DECLARE times_rented SMALLINT;
-		BEGIN
-			SELECT COUNT(name) INTO times_rented
-				FROM rental
-				INNER JOIN inventory
-				ON (rental.inventory_id = inventory.inventory_id)
-				INNER JOIN film_category
-				ON (inventory.film_ID = film_category.film_id)
-				INNER JOIN category
-				ON (film_category.category_id = category.category_id)
-				WHERE customer_id = c_id and name = genre;
-								
-			RETURN times_rented;
-		END;
-		$$;
-
 --a function to get the most frequent film genre for each customer
 CREATE OR REPLACE FUNCTION favorite(c_id INT)
     RETURNS TEXT
