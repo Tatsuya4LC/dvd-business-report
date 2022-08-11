@@ -6,39 +6,45 @@ CREATE OR REPLACE PROCEDURE refresh_customer_genre()
 	BEGIN
 		TRUNCATE customer_genre;
 		TRUNCATE customer_preferred_genre;
-	
+
+		--adding data to the detailed table customer_genre
 		INSERT INTO customer_genre (
-		SELECT customer.customer_id,
-			category.name,
-			rented_genre(customer.customer_id, category.name)
-			FROM customer, category);
+			SELECT customer.customer_id,
+				category.name,
+				(SELECT COUNT(name) AS times_rented --calculates customer's film genre frequency
+					FROM rental
+					INNER JOIN inventory
+					ON (rental.inventory_id = inventory.inventory_id)
+					INNER JOIN film_category
+					ON (inventory.film_ID = film_category.film_id)
+					INNER JOIN category
+					ON (film_category.category_id = category.category_id)
+					WHERE customer_id = c_id and name = genre)
+				FROM customer, category);
 	
+		--populating summary table customer_preferred_genre with relevant data
+		--sorted by customer starting from most amount spent to least
 		INSERT INTO customer_preferred_genre (
-		SELECT sum(payment.amount) AS total_spent,
+			SELECT sum(payment.amount) AS total_spent, --calculate customer's total amount spent
 				CONCAT(customer.first_name, ' ', customer.last_name),
-				(SELECT STRING_AGG(name, ', ') AS favorite_genre
-					FROM customer_genre
-					WHERE customer_id = customer.customer_id
-					GROUP BY customer_genre.times_rented
-					ORDER BY times_rented DESC
-					LIMIT 1),
+				favorite(customer.customer_id), --identifies top 3 most frequent rented film genre
 				customer.email,
 				address.address,
 				address.address2,
 				city.city,
 				address.postal_code,
 				country.country
-			FROM customer
-			INNER JOIN address
-			ON (customer.address_id = address.address_id)
-			INNER JOIN city
-			ON (address.city_id = city.city_id)
-			INNER JOIN country
-			ON (city.country_id = country.country_id)
-			INNER JOIN payment
-			ON (customer.customer_id = payment.customer_id)
-			GROUP BY customer.customer_id, address.address, address.address2, city.city, address.postal_code, country.country
-			ORDER BY total_spent DESC);	
+				FROM customer
+				INNER JOIN address
+				ON (customer.address_id = address.address_id)
+				INNER JOIN city
+				ON (address.city_id = city.city_id)
+				INNER JOIN country
+				ON (city.country_id = country.country_id)
+				INNER JOIN payment
+				ON (customer.customer_id = payment.customer_id)
+				GROUP BY customer.customer_id, address.address, address.address2, city.city, address.postal_code, country.country
+				ORDER BY total_spent DESC);
 			
 	END;
 	$$;

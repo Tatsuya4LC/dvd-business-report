@@ -1,4 +1,4 @@
---adding data to the created table customer_genre
+--adding data to the detailed table customer_genre
 INSERT INTO customer_genre (
 	SELECT customer.customer_id,
 		category.name,
@@ -13,7 +13,7 @@ INSERT INTO customer_genre (
 			WHERE customer_id = c_id and name = genre)
 		FROM customer, category);
 
---populating table customer_preferred_genre with relevant data
+--populating summary table customer_preferred_genre with relevant data
 --sorted by customer starting from most amount spent to least
 INSERT INTO customer_preferred_genre (
 	SELECT sum(payment.amount) AS total_spent, --calculate customer's total amount spent
