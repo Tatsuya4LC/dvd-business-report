@@ -1,0 +1,44 @@
+--a procedure to refresh customer_genre and customer_preferred_genre table for new data
+CREATE OR REPLACE PROCEDURE refresh_customer_genre()
+	LANGUAGE PLPGSQL
+	AS
+	$$
+	BEGIN
+		TRUNCATE customer_genre;
+		TRUNCATE customer_preferred_genre;
+	
+		INSERT INTO customer_genre (
+		SELECT customer.customer_id,
+			category.name,
+			rented_genre(customer.customer_id, category.name)
+			FROM customer, category);
+	
+		INSERT INTO customer_preferred_genre (
+		SELECT sum(payment.amount) AS total_spent,
+				CONCAT(customer.first_name, ' ', customer.last_name),
+				(SELECT STRING_AGG(name, ', ') AS favorite_genre
+					FROM customer_genre
+					WHERE customer_id = customer.customer_id
+					GROUP BY customer_genre.times_rented
+					ORDER BY times_rented DESC
+					LIMIT 1),
+				customer.email,
+				address.address,
+				address.address2,
+				city.city,
+				address.postal_code,
+				country.country
+			FROM customer
+			INNER JOIN address
+			ON (customer.address_id = address.address_id)
+			INNER JOIN city
+			ON (address.city_id = city.city_id)
+			INNER JOIN country
+			ON (city.country_id = country.country_id)
+			INNER JOIN payment
+			ON (customer.customer_id = payment.customer_id)
+			GROUP BY customer.customer_id, address.address, address.address2, city.city, address.postal_code, country.country
+			ORDER BY total_spent DESC);	
+			
+	END;
+	$$;

@@ -1,0 +1,21 @@
+--a table for customer's rented genre to see their preferred genres
+DROP TABLE IF EXISTS customer_genre;
+
+CREATE TABLE customer_genre (
+customer_id INT,
+name VARCHAR(25),
+times_rented SMALLINT);
+
+--a table consisting of detailed report for targeted interaction towards the customer
+DROP TABLE IF EXISTS customer_preferred_genre;
+
+CREATE TABLE customer_preferred_genre (
+total_spent NUMERIC(5,2),
+full_name VARCHAR(255),
+favorite_genre VARCHAR(255),
+email VARCHAR(50),
+address VARCHAR(50),
+address2 VARCHAR(50),
+city VARCHAR(50),
+postal_code VARCHAR(10),
+country VARCHAR(50));
