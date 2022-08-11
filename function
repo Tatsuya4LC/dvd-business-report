@@ -1,4 +1,4 @@
---a function to aggregate customer's rented film genre
+--a function to add frequency to customer's rented film genre
 CREATE OR REPLACE FUNCTION rented_genre(c_id INT, genre VARCHAR(25))
 	RETURNS SMALLINT
 		LANGUAGE PLPGSQL
@@ -19,3 +19,21 @@ CREATE OR REPLACE FUNCTION rented_genre(c_id INT, genre VARCHAR(25))
 			RETURN times_rented;
 		END;
 		$$;
+
+--a function to get the most frequent film genre for each customer
+CREATE OR REPLACE FUNCTION favorite(fave STRING)
+    RETURNS STRING
+        LANGUAGE PLPGSQL
+        AS
+        $$ 
+        DECLARE fav_genre INT;
+        BEGIN
+            SELECT STRING_AGG(name, ', ') INTO fav_genre
+			    FROM customer_genre
+    			WHERE customer_id = customer.customer_id
+	    		GROUP BY customer_genre.times_rented
+		    	ORDER BY times_rented DESC
+			    LIMIT 1;
+            RETURN fav_genre;
+        END
+        $$;
