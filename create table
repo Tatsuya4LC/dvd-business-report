@@ -7,7 +7,7 @@ name VARCHAR(25),
 times_rented SMALLINT);
 
 --a summary table consisting of customer's "favorite genre" based on their most frequent rented film genre
---the the total amount spent thus far
+--and their total amount spent thus far
 DROP TABLE IF EXISTS customer_preferred_genre;
 
 CREATE TABLE customer_preferred_genre (
