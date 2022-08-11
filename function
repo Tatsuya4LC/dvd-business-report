@@ -1,4 +1,4 @@
---a function to get the most frequent film genre for each customer
+--a function to get the top 3 most frequent film genre for each customer
 CREATE OR REPLACE FUNCTION favorite(c_id INT)
     RETURNS TEXT
         LANGUAGE PLPGSQL
