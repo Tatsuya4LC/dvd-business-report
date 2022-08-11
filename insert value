@@ -2,7 +2,15 @@
 INSERT INTO customer_genre (
 	SELECT customer.customer_id,
 		category.name,
-		rented_genre(customer.customer_id, category.name) --calculates customer's film genre frequency
+		(SELECT COUNT(name) AS times_rented --calculates customer's film genre frequency
+				FROM rental
+				INNER JOIN inventory
+				ON (rental.inventory_id = inventory.inventory_id)
+				INNER JOIN film_category
+				ON (inventory.film_ID = film_category.film_id)
+				INNER JOIN category
+				ON (film_category.category_id = category.category_id)
+				WHERE customer_id = c_id and name = genre)
 		FROM customer, category);
 
 --populating table customer_preferred_genre with relevant data
