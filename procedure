@@ -1,4 +1,4 @@
---a procedure to refresh customer_genre and customer_preferred_genre table for new data
+--a procedure to refresh/update customer_genre and customer_preferred_genre table for new data
 CREATE OR REPLACE PROCEDURE refresh_customer_genre()
 	LANGUAGE PLPGSQL
 	AS
