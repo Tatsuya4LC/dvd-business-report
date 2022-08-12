@@ -6,7 +6,7 @@ CREATE OR REPLACE FUNCTION summary_update()
 	BEGIN
 		INSERT INTO customer_summary (
 			SELECT sum(payment.amount) AS total_spent, CONCAT(customer.first_name, ' ', customer.last_name),
-				preferred(customer.customer_id), spent_on_genre(customer.customer_id), customer.email, address.address, address.address2,
+				preferred(customer.customer_id), spent_genre(customer.customer_id), customer.email, address.address, address.address2,
 				city.city, address.postal_code, country.country
 			FROM customer
 			INNER JOIN address

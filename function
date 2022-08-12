@@ -15,14 +15,14 @@ CREATE OR REPLACE FUNCTION preferred(c_id INT)
 	END;
     $$;
 
-CREATE OR REPLACE FUNCTION spent_on_genre(c_id INT)
+CREATE OR REPLACE FUNCTION spent_genre(c_id INT)
 	RETURNS NUMERIC(5,2)
 	LANGUAGE PLPGSQL
 	AS
 	$$
 	DECLARE spent NUMERIC(5,2);
 	BEGIN
-		SELECT SUM(cost_on_genre) INTO spent
+		SELECT SUM(spent_on_genre) INTO spent
 			FROM customer_detail
 			WHERE customer_id = c_id
 			GROUP BY customer_detail.times_rented

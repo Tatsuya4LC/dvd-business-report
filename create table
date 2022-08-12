@@ -4,7 +4,7 @@ CREATE TABLE customer_detail (
 customer_id INT,
 name VARCHAR(25),
 times_rented SMALLINT,
-cost_on_genre NUMERIC(5,2));
+spent_on_genre NUMERIC(5,2));
 
 DROP TABLE IF EXISTS customer_summary;
 
