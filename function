@@ -1,17 +1,33 @@
---a function to get the top 3 most frequent film genre for each customer
-CREATE OR REPLACE FUNCTION favorite(c_id INT)
+CREATE OR REPLACE FUNCTION preferred(c_id INT)
     RETURNS TEXT
-        LANGUAGE PLPGSQL
-        AS
-        $$ 
-        DECLARE fav_genre INT;
-        BEGIN
-            SELECT STRING_AGG(name, ', ') INTO fav_genre
-			    FROM customer_genre
-    			WHERE customer_id = c_id
-	    		GROUP BY customer_genre.times_rented
-		    	ORDER BY times_rented DESC
-			    LIMIT 3;
-            RETURN fav_genre;
-        END
-        $$;
+    LANGUAGE PLPGSQL
+    AS
+    $$ 
+    DECLARE genre VARCHAR(255);
+    BEGIN
+    	SELECT STRING_AGG(name, ', ') INTO genre
+			FROM customer_detail
+    		WHERE customer_id = c_id
+	    	GROUP BY customer_detail.times_rented
+		    ORDER BY times_rented DESC
+			LIMIT 1;
+		RETURN genre;
+	END;
+    $$;
+
+CREATE OR REPLACE FUNCTION spent_on_genre(c_id INT)
+	RETURNS NUMERIC(5,2)
+	LANGUAGE PLPGSQL
+	AS
+	$$
+	DECLARE spent NUMERIC(5,2);
+	BEGIN
+		SELECT SUM(cost_on_genre) INTO spent
+			FROM customer_detail
+			WHERE customer_id = c_id
+			GROUP BY customer_detail.times_rented
+			ORDER BY times_rented DESC
+			LIMIT 1;
+		RETURN spent;
+	END;
+	$$;
