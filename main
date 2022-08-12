@@ -1,7 +1,7 @@
 /* This business report ensures that the company has a proper understanding of the customer
 before engaging in Customer Relationship Management */
 
--- [SECTION B] a detailed table consisting film genre frequency and total amount spent per film genre
+-- [SECTION B] a detailed table consisting of film genre frequency and total amount spent per film genre
 DROP TABLE IF EXISTS customer_detail;
 
 CREATE TABLE customer_detail (
@@ -47,7 +47,7 @@ INSERT INTO customer_detail (
 
 SELECT * FROM customer_detail;
 
--- [SECTION D] a function to transform frequency data from customer_detail into preferred_genre, INT to STRING
+-- [SECTION D] a function to transform frequency data times_rented from customer_detail into preferred_genre, INT to STRING
 CREATE OR REPLACE FUNCTION preferred(c_id INT)
     RETURNS TEXT
     LANGUAGE PLPGSQL
@@ -65,7 +65,7 @@ CREATE OR REPLACE FUNCTION preferred(c_id INT)
 	END;
     $$;
 
--- [SECTION D] a function that transform cost_on_genre from customer_detail into total spent on preferred_genre
+-- [SECTION D] a function that transform cost_on_genre from customer_detail into total spent (amount_spent) on preferred_genre
 CREATE OR REPLACE FUNCTION spent_on_genre(c_id INT)
 	RETURNS NUMERIC(5,2)
 	LANGUAGE PLPGSQL
