@@ -1,0 +1,193 @@
+--Section B. a table for customer's rented genre to see their preferred genres
+DROP TABLE IF EXISTS customer_genre;
+
+CREATE TABLE customer_genre (
+customer_id INT,
+name VARCHAR(25),
+times_rented SMALLINT);
+
+--Section D. a function to aggregate customer's rented film genre frequency
+--will be used to transform favorite_genre in the customer_preferred_genre table to reflect their film preference
+CREATE OR REPLACE FUNCTION rented_genre(c_id INT, genre VARCHAR(25))
+	RETURNS SMALLINT
+		LANGUAGE PLPGSQL
+		AS
+		$$
+		DECLARE times_rented SMALLINT;
+		BEGIN
+			SELECT COUNT(name) INTO times_rented
+				FROM rental
+				INNER JOIN inventory
+				ON (rental.inventory_id = inventory.inventory_id)
+				INNER JOIN film_category
+				ON (inventory.film_ID = film_category.film_id)
+				INNER JOIN category
+				ON (film_category.category_id = category.category_id)
+				WHERE customer_id = c_id and name = genre;
+								
+			RETURN times_rented;
+		END;
+		$$;
+
+--Section C. testing function runtime
+SELECT rented_genre (3, 'Horror');		--output 2
+SELECT rented_genre (3, 'Action');		--output 4
+SELECT rented_genre (3, 'Animation');	--output 3
+
+--Section C. cross-examining the function rented_genre outputs for data integrity
+SELECT name, count(name)
+	FROM rental
+	INNER JOIN inventory
+	ON (rental.inventory_id = inventory.inventory_id)
+	INNER JOIN film_category
+	ON (inventory.film_ID = film_category.film_id)
+	INNER JOIN category
+	ON (film_category.category_id = category.category_id)
+	WHERE customer_id = 3
+	GROUP BY name;
+
+--Section C. adding data to the created table customer_genre
+INSERT INTO customer_genre (
+	SELECT customer.customer_id,
+		category.name,
+		rented_genre(customer.customer_id, category.name)
+		FROM customer, category);
+
+--Section C. checking table data population
+SELECT * FROM customer_genre;
+
+--Section B. a table consisting of summary report for targeted interaction towards the customer
+DROP TABLE IF EXISTS customer_preferred_genre;
+
+CREATE TABLE customer_preferred_genre (
+total_spent NUMERIC(5,2),
+full_name VARCHAR(255),
+favorite_genre VARCHAR(255),
+email VARCHAR(50),
+address VARCHAR(50),
+address2 VARCHAR(50),
+city VARCHAR(50),
+postal_code VARCHAR(10),
+country VARCHAR(50));
+
+--Section C. populating table customer_preferred_genre with relevant data
+INSERT INTO customer_preferred_genre (
+	SELECT sum(payment.amount) AS total_spent,
+		CONCAT(customer.first_name, ' ', customer.last_name),
+		(SELECT STRING_AGG(name, ', ') AS favorite_genre
+			FROM customer_genre
+			WHERE customer_id = customer.customer_id
+			GROUP BY customer_genre.times_rented
+			ORDER BY times_rented DESC
+			LIMIT 1),
+		customer.email,
+		address.address,
+		address.address2,
+		city.city,
+		address.postal_code,
+		country.country
+		FROM customer
+		INNER JOIN address
+		ON (customer.address_id = address.address_id)
+		INNER JOIN city
+		ON (address.city_id = city.city_id)
+		INNER JOIN country
+		ON (city.country_id = country.country_id)
+		INNER JOIN payment
+		ON (customer.customer_id = payment.customer_id)
+		GROUP BY customer.customer_id, address.address, address.address2, city.city, address.postal_code, country.country
+		ORDER BY total_spent DESC);
+
+--Section C. checking if table customer_preferred_genre properly populated
+SELECT * FROM customer_preferred_genre;
+
+--Section C. cross-examining data integrity
+SELECT sum(payment.amount), customer.first_name, customer.last_name, address.address, address.address2, city.city, address.postal_code, country.country
+	FROM customer
+	INNER JOIN address
+	ON (customer.address_id = address.address_id)
+	INNER JOIN city
+	ON (address.city_id = city.city_id)
+	INNER JOIN country
+	ON (city.country_id = country.country_id)
+	INNER JOIN payment
+	ON (customer.customer_id = payment.customer_id)
+	GROUP BY customer.customer_id, address.address, address.address2, city.city, address.postal_code, country.country
+	ORDER BY sum(payment.amount) DESC;
+		
+--Section E. a trigger function to run procedure refresh_customer_genre() to accomodate for new data
+CREATE OR REPLACE FUNCTION trigger_on_rental_insert()
+	RETURNS TRIGGER
+		LANGUAGE PLPGSQL
+		AS
+		$$
+		BEGIN
+			CALL refresh_customer_genre();
+			RETURN NEW;
+		END;
+		$$;
+
+--Section E. a trigger to update for new data when an insert query event acts on the rental table
+CREATE TRIGGER new_rental
+	AFTER INSERT
+	ON rental
+	FOR EACH STATEMENT
+		EXECUTE PROCEDURE trigger_on_rental_insert();
+
+--Section F. a procedure to refresh customer_genre and customer_preferred_genre table for new data
+--this procedure runs every time there's a new INSERT query acted upon rental table, facilitated by new_rental trigger
+CREATE OR REPLACE PROCEDURE refresh_customer_genre()
+	LANGUAGE PLPGSQL
+	AS
+	$$
+	BEGIN
+		TRUNCATE customer_genre;
+		TRUNCATE customer_preferred_genre;
+	
+		INSERT INTO customer_genre (
+		SELECT customer.customer_id,
+			category.name,
+			rented_genre(customer.customer_id, category.name)
+			FROM customer, category);
+	
+		INSERT INTO customer_preferred_genre (
+		SELECT sum(payment.amount) AS total_spent,
+				CONCAT(customer.first_name, ' ', customer.last_name),
+				(SELECT STRING_AGG(name, ', ') AS favorite_genre
+					FROM customer_genre
+					WHERE customer_id = customer.customer_id
+					GROUP BY customer_genre.times_rented
+					ORDER BY times_rented DESC
+					LIMIT 1),
+				customer.email,
+				address.address,
+				address.address2,
+				city.city,
+				address.postal_code,
+				country.country
+			FROM customer
+			INNER JOIN address
+			ON (customer.address_id = address.address_id)
+			INNER JOIN city
+			ON (address.city_id = city.city_id)
+			INNER JOIN country
+			ON (city.country_id = country.country_id)
+			INNER JOIN payment
+			ON (customer.customer_id = payment.customer_id)
+			GROUP BY customer.customer_id, address.address, address.address2, city.city, address.postal_code, country.country
+			ORDER BY total_spent DESC);	
+			
+	END;
+	$$;
+		
+--control output
+SELECT * FROM customer_genre WHERE customer_id = 148 ORDER BY times_rented DESC;	--original output 'Sci-fi' = 7 into 8 'Family' = 6 into 9
+SELECT * FROM customer_preferred_genre;	--original output 'Sci-fi' into 'Family'
+
+--DML to test trigger operability whether customer_genre table changes
+INSERT INTO rental VALUES (16050,'2022-08-06 20:33:01', 304, 148, '2022-08-10 20:33:01', 1, '2022-08-06 22:33:01');
+
+--DML to test trigger operability whether customer_preferred_genre changes
+INSERT INTO rental VALUES (16051,'2022-08-06 20:33:01', 1729, 148, '2022-08-10 20:33:01', 1, '2022-08-06 22:33:01'),
+	(16052,'2022-08-06 20:33:01', 3189, 148, '2022-08-10 20:33:01', 1, '2022-08-06 22:33:01'),
+	(16053,'2022-08-06 20:33:01', 316, 148, '2022-08-10 20:33:01', 1, '2022-08-06 22:33:01');
