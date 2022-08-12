@@ -1,19 +1,18 @@
---a detailed table showing all film genre each customer rented and their frequency
-DROP TABLE IF EXISTS customer_genre;
+DROP TABLE IF EXISTS customer_detail;
 
-CREATE TABLE customer_genre (
+CREATE TABLE customer_detail (
 customer_id INT,
 name VARCHAR(25),
-times_rented SMALLINT);
+times_rented SMALLINT,
+cost_on_genre NUMERIC(5,2));
 
---a summary table consisting of customer's "favorite genre" based on their most frequent rented film genre
---and their total amount spent thus far
-DROP TABLE IF EXISTS customer_preferred_genre;
+DROP TABLE IF EXISTS customer_summary;
 
-CREATE TABLE customer_preferred_genre (
+CREATE TABLE customer_summary (
 total_spent NUMERIC(5,2),
 full_name VARCHAR(255),
-favorite_genre VARCHAR(255),
+preferred_genre VARCHAR(255),
+amount_spent NUMERIC(5,2),
 email VARCHAR(50),
 address VARCHAR(50),
 address2 VARCHAR(50),
