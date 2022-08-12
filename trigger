@@ -28,4 +28,4 @@ CREATE TRIGGER run_summary_update
 	AFTER INSERT
 	ON customer_detail
 	FOR EACH STATEMENT
-		EXECUTE PROCEDURE summary_update(); test
+		EXECUTE PROCEDURE summary_update();
