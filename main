@@ -119,8 +119,9 @@ CREATE TRIGGER run_summary_update
 
 SELECT * FROM customer_summary;
 
---Section F. a procedure to refresh customer_genre and customer_preferred_genre table for new data
---this procedure runs every time there's a new INSERT query acted upon rental table, facilitated by new_rental trigger
+-- [SECTION F] a procedure to refresh customer_detail and customer_summary table for new data
+--this procedure should be run monthly to prepare for the next month's CRM
+-- [SECTION F1] this procedure can be automated with the use of pgAgent that's available for postgreSQL
 CREATE OR REPLACE PROCEDURE refresh_customer_detail()
 	LANGUAGE PLPGSQL
 	AS
@@ -148,7 +149,9 @@ CREATE OR REPLACE PROCEDURE refresh_customer_detail()
 	END;
 	$$;
 
+--check
 SELECT * FROM customer_detail;
 SELECT * FROM customer_summary;
 
+--check if trigger and function properly working
 CALL refresh_customer_detail();
