@@ -149,9 +149,13 @@ CREATE OR REPLACE PROCEDURE refresh_customer_detail()
 	END;
 	$$;
 
---check
+--control
 SELECT * FROM customer_detail;
 SELECT * FROM customer_summary;
 
---check if trigger and function properly working
+--check if trigger and function is properly working
 CALL refresh_customer_detail();
+
+--check
+SELECT * FROM customer_detail;
+SELECT * FROM customer_summary;
