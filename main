@@ -8,7 +8,7 @@ CREATE TABLE customer_detail (
 customer_id INT,
 name VARCHAR(25),
 times_rented SMALLINT, --frequency per film genre
-cost_on_genre NUMERIC(5,2)); --cost per film genre
+spent_on_genre NUMERIC(5,2)); --cost per film genre
 
 SELECT * FROM customer_detail;
 
@@ -65,15 +65,15 @@ CREATE OR REPLACE FUNCTION preferred(c_id INT)
 	END;
     $$;
 
--- [SECTION D] a function that transform cost_on_genre from customer_detail into total spent (amount_spent) on preferred_genre
-CREATE OR REPLACE FUNCTION spent_on_genre(c_id INT)
+-- [SECTION D] a function that transform spent_on_genre from customer_detail into total spent (amount_spent) on preferred_genre
+CREATE OR REPLACE FUNCTION spent_genre(c_id INT)
 	RETURNS NUMERIC(5,2)
 	LANGUAGE PLPGSQL
 	AS
 	$$
 	DECLARE spent NUMERIC(5,2);
 	BEGIN
-		SELECT SUM(cost_on_genre) INTO spent
+		SELECT SUM(spent_on_genre) INTO spent
 			FROM customer_detail
 			WHERE customer_id = c_id
 			GROUP BY customer_detail.times_rented
@@ -92,7 +92,7 @@ CREATE OR REPLACE FUNCTION summary_update()
 	BEGIN
 		INSERT INTO customer_summary (
 			SELECT sum(payment.amount) AS total_spent, CONCAT(customer.first_name, ' ', customer.last_name),
-				preferred(customer.customer_id), spent_on_genre(customer.customer_id), customer.email, address.address, address.address2,
+				preferred(customer.customer_id), spent_genre(customer.customer_id), customer.email, address.address, address.address2,
 				city.city, address.postal_code, country.country
 			FROM customer
 			INNER JOIN address
