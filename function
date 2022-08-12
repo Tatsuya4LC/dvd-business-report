@@ -30,4 +30,4 @@ CREATE OR REPLACE FUNCTION spent_genre(c_id INT)
 			LIMIT 1;
 		RETURN spent;
 	END;
-	$$;
+	$$; test
